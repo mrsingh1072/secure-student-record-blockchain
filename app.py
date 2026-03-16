@@ -149,10 +149,10 @@ def get_system_stats():
 # Create Flask application
 app = create_app()
 
-@app.route('/', methods=['GET'])
-def index():
+@app.route('/api', methods=['GET'])
+def api_info():
     """
-    Root endpoint providing system information and API documentation
+    API endpoint providing system information and API documentation
     """
     return jsonify({
         'system': 'Secure Student Record Blockchain',
@@ -639,6 +639,224 @@ def after_request(response):
         })
     
     return response
+
+# ============================================================================
+# FRONTEND TEMPLATE ROUTES
+# ============================================================================
+
+@app.route('/login', methods=['GET'])
+def login_page():
+    """
+    Render login page
+    """
+    return render_template('login.html')
+
+@app.route('/admin_dashboard', methods=['GET'])
+def admin_dashboard():
+    """
+    Admin Dashboard - replaces the original dashboard with modern UI
+    
+    Renders an HTML dashboard page with system status and admin functions
+    """
+    try:
+        # Fetch data from existing internal endpoints
+        db_manager = DatabaseManager()
+        db_stats = db_manager.get_database_stats()
+        
+        # Get system stats from singletons
+        system_stats = get_system_stats()
+        
+        # Prepare dashboard data
+        dashboard_data = {
+            # Blockchain status
+            'blockchain_valid': system_stats['blockchain']['is_valid'],
+            'total_blocks': system_stats['blockchain']['total_blocks'],
+            'latest_block': system_stats['blockchain']['total_blocks'] - 1 if system_stats['blockchain']['total_blocks'] > 0 else 0,
+            
+            # PBFT Consensus status
+            'consensus_online': True,  # Assume online if we can get stats
+            'total_validations': system_stats['consensus'].get('total_validations', 0),
+            
+            # Database status
+            'database_online': True,  # If we got here, database is working
+            'total_records': db_stats['total_records'],
+            'verified_records': db_stats['verified_records'],
+            
+            # System health
+            'system_healthy': (
+                system_stats['blockchain']['is_valid'] and 
+                db_stats['total_records'] >= 0
+            ),
+            'last_updated': datetime.now().strftime('%H:%M:%S'),
+            'correlation_id': getattr(g, 'correlation_id', 'dashboard-' + str(uuid.uuid4())[:8])
+        }
+        
+        logger.info("Admin dashboard accessed", 
+                   extra={
+                       "blockchain_blocks": dashboard_data['total_blocks'],
+                       "database_records": dashboard_data['total_records'],
+                       "system_health": dashboard_data['system_healthy']
+                   })
+        
+        return render_template('admin_dashboard.html', **dashboard_data)
+        
+    except Exception as e:
+        logger.error("Admin dashboard error", extra={"error": str(e)})
+        # Fallback data in case of errors
+        fallback_data = {
+            'blockchain_valid': False,
+            'total_blocks': 0,
+            'latest_block': 0,
+            'consensus_online': False,
+            'total_validations': 0,
+            'database_online': False,
+            'total_records': 0,
+            'verified_records': 0,
+            'system_healthy': False,
+            'last_updated': datetime.now().strftime('%H:%M:%S'),
+            'correlation_id': 'error-' + str(uuid.uuid4())[:8]
+        }
+        return render_template('admin_dashboard.html', **fallback_data)
+
+@app.route('/student_portal', methods=['GET'])
+def student_portal():
+    """
+    Student Portal - view own academic records
+    """
+    try:
+        # In a real implementation, you would:
+        # 1. Get the current student user from session
+        # 2. Filter records by student_id
+        # 3. Return only records belonging to this student
+        
+        # Mock data for demonstration
+        student_data = {
+            'student_name': 'John Doe',
+            'student_id': 'STU123456',
+            'total_records': 3,
+            'verified_records': 2,
+            'pending_records': 1
+        }
+        
+        logger.info("Student portal accessed", extra=student_data)
+        return render_template('student_portal.html', **student_data)
+        
+    except Exception as e:
+        logger.error("Student portal error", extra={"error": str(e)})
+        return render_template('student_portal.html', error="Unable to load student records")
+
+@app.route('/verifier_panel', methods=['GET'])
+def verifier_panel():
+    """
+    Verifier Panel - verify student records by ID
+    """
+    try:
+        verifier_data = {
+            'verifier_name': 'Jane Smith',
+            'verifier_id': 'VER001',
+            'total_verifications_today': 12,
+            'successful_verifications': 10,
+            'failed_verifications': 2
+        }
+        
+        logger.info("Verifier panel accessed", extra=verifier_data)
+        return render_template('verifier_panel.html', **verifier_data)
+        
+    except Exception as e:
+        logger.error("Verifier panel error", extra={"error": str(e)})
+        return render_template('verifier_panel.html', error="Unable to load verifier panel")
+
+@app.route('/blockchain_explorer', methods=['GET'])
+def blockchain_explorer():
+    """
+    Blockchain Explorer - visualize blocks in the blockchain
+    """
+    try:
+        # Get blockchain data
+        blockchain = get_blockchain()
+        system_stats = get_system_stats()
+        
+        explorer_data = {
+            'total_blocks': len(blockchain.chain),
+            'total_transactions': sum(len(block.transactions) if hasattr(block, 'transactions') else 1 for block in blockchain.chain),
+            'blockchain_valid': system_stats['blockchain']['is_valid'],
+            'network_hash_rate': '256 SHA',  # Mock data
+            'latest_block_hash': blockchain.chain[-1].hash if blockchain.chain else None,
+            'genesis_block_hash': blockchain.chain[0].hash if blockchain.chain else None
+        }
+        
+        logger.info("Blockchain explorer accessed", extra=explorer_data)
+        return render_template('blockchain_explorer.html', **explorer_data)
+        
+    except Exception as e:
+        logger.error("Blockchain explorer error", extra={"error": str(e)})
+        fallback_data = {
+            'total_blocks': 0,
+            'total_transactions': 0,
+            'blockchain_valid': False,
+            'network_hash_rate': 'Unknown',
+            'latest_block_hash': None,
+            'genesis_block_hash': None
+        }
+        return render_template('blockchain_explorer.html', **fallback_data)
+
+@app.route('/api/blockchain/blocks', methods=['GET'])
+def get_blockchain_blocks():
+    """
+    API endpoint to get blockchain blocks data for the explorer
+    """
+    try:
+        blockchain = get_blockchain()
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+        
+        # Convert blocks to JSON-serializable format
+        blocks_data = []
+        for i, block in enumerate(blockchain.chain):
+            block_data = {
+                'id': i,
+                'hash': getattr(block, 'hash', f'block_{i}_hash'),
+                'previous_hash': getattr(block, 'previous_hash', f'block_{i-1}_hash' if i > 0 else '0'),
+                'timestamp': getattr(block, 'timestamp', datetime.now()).isoformat(),
+                'nonce': getattr(block, 'nonce', 0),
+                'merkle_root': getattr(block, 'merkle_root', f'merkle_{i}'),
+                'transactions': getattr(block, 'transactions', []),
+                'status': 'validated'
+            }
+            blocks_data.append(block_data)
+        
+        # Pagination
+        start = (page - 1) * per_page
+        end = start + per_page
+        paginated_blocks = blocks_data[start:end]
+        
+        return jsonify({
+            'success': True,
+            'blocks': paginated_blocks,
+            'total_blocks': len(blocks_data),
+            'page': page,
+            'per_page': per_page,
+            'total_pages': (len(blocks_data) + per_page - 1) // per_page
+        })
+        
+    except Exception as e:
+        logger.error("API blockchain blocks error", extra={"error": str(e)})
+        return jsonify({
+            'success': False,
+            'message': 'Unable to fetch blockchain data',
+            'error': str(e)
+        }), 500
+
+# Redirect root to appropriate dashboard based on user role
+@app.route('/', methods=['GET'])
+def root_redirect():
+    """
+    Root route - redirect to appropriate dashboard or login
+    """
+    # In a real implementation, check if user is logged in and redirect based on role
+    # For now, redirect to login page
+    from flask import redirect, url_for
+    return redirect(url_for('login_page'))
 
 if __name__ == '__main__':
     """

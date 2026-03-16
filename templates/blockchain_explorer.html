@@ -1,0 +1,831 @@
+{% extends "base.html" %}
+
+{% block title %}Blockchain Explorer - Secure Student Records{% endblock %}
+{% block page_title %}Blockchain Explorer{% endblock %}
+{% block user_name %}Explorer{% endblock %}
+
+{% block extra_css %}
+<style>
+    .explorer-hero {
+        background: linear-gradient(135deg, var(--accent-color), var(--accent-hover));
+        border-radius: 0.75rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        color: white;
+        text-align: center;
+    }
+    
+    .hero-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .hero-subtitle {
+        opacity: 0.9;
+        font-size: 1rem;
+    }
+    
+    .blockchain-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background: var(--secondary-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.2s;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+    }
+    
+    .stat-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.25rem;
+    }
+    
+    .stat-label {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+    }
+    
+    .search-filters {
+        background: var(--secondary-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .filter-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        align-items: end;
+    }
+    
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .form-label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+    }
+    
+    .form-input, .form-select {
+        padding: 0.75rem 1rem;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 0.375rem;
+        color: var(--text-primary);
+        font-size: 0.875rem;
+        transition: all 0.2s;
+    }
+    
+    .form-input:focus, .form-select:focus {
+        outline: none;
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .btn-filter {
+        padding: 0.75rem 1.5rem;
+        background: var(--accent-color);
+        border: none;
+        border-radius: 0.375rem;
+        color: white;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .btn-filter:hover {
+        background: var(--accent-hover);
+    }
+    
+    .blockchain-container {
+        position: relative;
+        min-height: 400px;
+    }
+    
+    .blockchain-timeline {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .block-card {
+        background: var(--secondary-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 0.75rem;
+        overflow: hidden;
+        transition: all 0.2s;
+        position: relative;
+        cursor: pointer;
+    }
+    
+    .block-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--accent-color);
+    }
+    
+    .block-card.genesis {
+        border-color: var(--success-color);
+        background: rgba(16, 185, 129, 0.05);
+    }
+    
+    .block-card.latest {
+        border-color: var(--warning-color);
+        background: rgba(245, 158, 11, 0.05);
+    }
+    
+    .block-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .block-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .block-icon {
+        width: 3rem;
+        height: 3rem;
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: white;
+        background: linear-gradient(135deg, var(--accent-color), var(--accent-hover));
+    }
+    
+    .block-icon.genesis {
+        background: linear-gradient(135deg, var(--success-color), #059669);
+    }
+    
+    .block-icon.latest {
+        background: linear-gradient(135deg, var(--warning-color), #d97706);
+    }
+    
+    .block-details h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.25rem;
+    }
+    
+    .block-meta {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+    }
+    
+    .block-status {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.375rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .block-status.validated {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success-color);
+    }
+    
+    .block-status.pending {
+        background: rgba(245, 158, 11, 0.1);
+        color: var(--warning-color);
+    }
+    
+    .block-body {
+        padding: 1.5rem;
+    }
+    
+    .block-properties {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .property-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .property-label {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        font-weight: 500;
+    }
+    
+    .property-value {
+        color: var(--text-primary);
+        font-weight: 500;
+        font-family: 'Courier New', monospace;
+        font-size: 0.875rem;
+    }
+    
+    .block-hash {
+        background: var(--card-bg);
+        border-radius: 0.375rem;
+        padding: 0.75rem;
+        font-family: 'Courier New', monospace;
+        font-size: 0.75rem;
+        color: var(--accent-color);
+        word-break: break-all;
+        margin-bottom: 1rem;
+    }
+    
+    .block-transactions {
+        margin-top: 1rem;
+    }
+    
+    .transaction-count {
+        display: flex;
+        align-items: center;
+        justify-content: between;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+    }
+    
+    .transaction-item {
+        background: rgba(59, 130, 246, 0.05);
+        border: 1px solid rgba(59, 130, 246, 0.1);
+        border-radius: 0.375rem;
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+        font-size: 0.75rem;
+    }
+    
+    .transaction-type {
+        font-weight: 500;
+        color: var(--accent-color);
+        margin-bottom: 0.25rem;
+    }
+    
+    .transaction-details {
+        color: var(--text-muted);
+    }
+    
+    .block-actions {
+        display: flex;
+        gap: 0.75rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border-color);
+    }
+    
+    .btn-action {
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 0.375rem;
+        background: transparent;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .btn-action:hover {
+        background: var(--card-bg);
+        color: var(--text-primary);
+        text-decoration: none;
+    }
+    
+    .blockchain-connection {
+        position: absolute;
+        left: 2rem;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: linear-gradient(to bottom, var(--accent-color), transparent);
+        z-index: -1;
+    }
+    
+    .loading-spinner {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        color: var(--text-muted);
+    }
+    
+    .spinner {
+        width: 2rem;
+        height: 2rem;
+        border: 2px solid var(--border-color);
+        border-radius: 50%;
+        border-top-color: var(--accent-color);
+        animation: spin 1s ease-in-out infinite;
+        margin-right: 1rem;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 2rem;
+    }
+    
+    .page-btn {
+        padding: 0.5rem 0.75rem;
+        background: var(--secondary-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 0.375rem;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .page-btn:hover,
+    .page-btn.active {
+        background: var(--accent-color);
+        color: white;
+        border-color: var(--accent-color);
+    }
+    
+    @media (max-width: 768px) {
+        .filter-row {
+            grid-template-columns: 1fr;
+        }
+        
+        .block-properties {
+            grid-template-columns: 1fr;
+        }
+        
+        .block-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        
+        .block-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="explorer-hero">
+    <h1 class="hero-title">Blockchain Explorer</h1>
+    <p class="hero-subtitle">Explore the complete blockchain network of student academic records</p>
+</div>
+
+<!-- Blockchain Statistics -->
+<div class="blockchain-stats">
+    <div class="stat-card">
+        <div class="stat-icon">⛓</div>
+        <div class="stat-number" id="totalBlocks">0</div>
+        <div class="stat-label">Total Blocks</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">📝</div>
+        <div class="stat-number" id="totalTransactions">0</div>
+        <div class="stat-label">Total Records</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">✓</div>
+        <div class="stat-number" id="validatedBlocks">0</div>
+        <div class="stat-label">Validated Blocks</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">🔒</div>
+        <div class="stat-number" id="networkHash">256</div>
+        <div class="stat-label">Hash Strength</div>
+    </div>
+</div>
+
+<!-- Search and Filters -->
+<div class="search-filters">
+    <h3 style="margin-bottom: 1rem; color: var(--text-primary);">Filter Blocks</h3>
+    <form class="filter-row" id="filterForm">
+        <div class="form-group">
+            <label for="blockNumber" class="form-label">Block Number</label>
+            <input type="number" id="blockNumber" class="form-input" placeholder="e.g., 42" min="0">
+        </div>
+        <div class="form-group">
+            <label for="dateRange" class="form-label">Date Range</label>
+            <select id="dateRange" class="form-select">
+                <option value="">All Time</option>
+                <option value="today">Today</option>
+                <option value="week">Last Week</option>
+                <option value="month">Last Month</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="blockType" class="form-label">Block Type</label>
+            <select id="blockType" class="form-select">
+                <option value="">All Types</option>
+                <option value="genesis">Genesis Block</option>
+                <option value="record">Record Block</option>
+                <option value="validation">Validation Block</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn-filter">🔍 Filter Blocks</button>
+        </div>
+    </form>
+</div>
+
+<!-- Loading State -->
+<div class="loading-spinner" id="loadingSpinner" style="display: none;">
+    <div class="spinner"></div>
+    Loading blockchain data...
+</div>
+
+<!-- Blockchain Timeline -->
+<div class="blockchain-container">
+    <div class="blockchain-connection"></div>
+    <div class="blockchain-timeline" id="blockchainTimeline">
+        <!-- Blocks will be dynamically loaded here -->
+    </div>
+</div>
+
+<!-- Pagination -->
+<div class="pagination" id="pagination">
+    <button class="page-btn" onclick="changePage(1)">« First</button>
+    <button class="page-btn" onclick="changePage('prev')">‹ Previous</button>
+    <button class="page-btn active" onclick="changePage(1)">1</button>
+    <button class="page-btn" onclick="changePage(2)">2</button>
+    <button class="page-btn" onclick="changePage(3)">3</button>
+    <button class="page-btn" onclick="changePage('next')">Next ›</button>
+    <button class="page-btn" onclick="changePage('last')">Last »</button>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentPage = 1;
+    let blocksPerPage = 5;
+    let totalBlocks = 0;
+    
+    // Mock blockchain data
+    const mockBlocks = [
+        {
+            id: 0,
+            hash: '0x000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f',
+            previousHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
+            timestamp: new Date('2024-01-01T00:00:00Z'),
+            nonce: 2083236893,
+            merkleRoot: '0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b',
+            transactions: [
+                { type: 'Genesis Block Creation', details: 'Initial blockchain setup' }
+            ],
+            type: 'genesis',
+            status: 'validated'
+        },
+        {
+            id: 1,
+            hash: '0x00000000839a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048',
+            previousHash: '0x000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f',
+            timestamp: new Date('2024-02-15T10:30:00Z'),
+            nonce: 2573394689,
+            merkleRoot: '0x982051fd1e4ba744bbbe680e1fee14677ba1a3c3540bf7b1cdb606e857233e0e',
+            transactions: [
+                { type: 'Student Record Upload', details: 'Bachelor\'s Degree - Computer Science - STU123456' },
+                { type: 'Record Verification', details: 'Verified by University of Technology' }
+            ],
+            type: 'record',
+            status: 'validated'
+        },
+        {
+            id: 2,
+            hash: '0x000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd',
+            previousHash: '0x00000000839a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048',
+            timestamp: new Date('2024-03-10T14:45:00Z'),
+            nonce: 1639830024,
+            merkleRoot: '0xf3e94742aca4b5ef85488dc37c06c3282295ffec960994b2c0d5ac2a25a95766',
+            transactions: [
+                { type: 'Certificate Upload', details: 'Web Development Certification - STU123456' },
+                { type: 'PBFT Consensus', details: 'Validated by 4/5 nodes' }
+            ],
+            type: 'record',
+            status: 'validated'
+        },
+        {
+            id: 3,
+            hash: '0x00000000cd9dd115f10e4b4e26d4346d047b26b5199b2e6c6b348aa2e3db8c18',
+            previousHash: '0x000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd',
+            timestamp: new Date('2024-04-22T09:15:00Z'),
+            nonce: 2097152000,
+            merkleRoot: '0xec719c27b021d39526378c57226ffcd8fefd8c1f42b482c5b1442c2a8a8c54fb',
+            transactions: [
+                { type: 'Grade Card Upload', details: 'Fall 2023 Semester - STU789012' },
+                { type: 'Record Masking', details: 'Sensitive data masked for privacy' }
+            ],
+            type: 'record',
+            status: 'validated'
+        },
+        {
+            id: 4,
+            hash: '0x0000000082b5015589a3fdf2d4baff403e6f0be035a5a9b2af3bd1ad623d2345',
+            previousHash: '0x00000000cd9dd115f10e4b4e26d4346d047b26b5199b2e6c6b348aa2e3db8c18',
+            timestamp: new Date('2024-05-30T16:20:00Z'),
+            nonce: 3486784401,
+            merkleRoot: '0x1dbd981fe6985776b644b173a4d0385ddc1aa2a829688d1e0000000000000000',
+            transactions: [
+                { type: 'Master\'s Degree Upload', details: 'Data Science Masters - STU456789' },
+                { type: 'Blockchain Verification', details: 'Cross-referenced with external institutions' }
+            ],
+            type: 'record',
+            status: 'validated'
+        }
+    ];
+    
+    function updateStats() {
+        totalBlocks = mockBlocks.length;
+        const totalTransactions = mockBlocks.reduce((sum, block) => sum + block.transactions.length, 0);
+        const validatedBlocks = mockBlocks.filter(block => block.status === 'validated').length;
+        
+        document.getElementById('totalBlocks').textContent = totalBlocks;
+        document.getElementById('totalTransactions').textContent = totalTransactions;
+        document.getElementById('validatedBlocks').textContent = validatedBlocks;
+    }
+    
+    function animateNumber(element, target) {
+        let current = 0;
+        const increment = target / 20;
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                current = target;
+                clearInterval(timer);
+            }
+            element.textContent = Math.floor(current);
+        }, 50);
+    }
+    
+    function formatHash(hash) {
+        return `${hash.substring(0, 10)}...${hash.substring(hash.length - 8)}`;
+    }
+    
+    function renderBlock(block) {
+        const isGenesis = block.id === 0;
+        const isLatest = block.id === totalBlocks - 1;
+        const blockClass = isGenesis ? 'genesis' : isLatest ? 'latest' : '';
+        const iconClass = isGenesis ? 'genesis' : isLatest ? 'latest' : '';
+        
+        return `
+            <div class="block-card ${blockClass}" onclick="expandBlock(${block.id})">
+                <div class="block-header">
+                    <div class="block-info">
+                        <div class="block-icon ${iconClass}">${isGenesis ? '⚡' : isLatest ? '🔥' : '⛓'}</div>
+                        <div class="block-details">
+                            <h3>Block #${block.id}${isGenesis ? ' (Genesis)' : isLatest ? ' (Latest)' : ''}</h3>
+                            <div class="block-meta">${block.timestamp.toLocaleString()} • ${block.transactions.length} transactions</div>
+                        </div>
+                    </div>
+                    <div class="block-status ${block.status}">
+                        <div class="status-dot"></div>
+                        ${block.status === 'validated' ? 'Validated' : 'Pending'}
+                    </div>
+                </div>
+                
+                <div class="block-body">
+                    <div class="block-properties">
+                        <div class="property-item">
+                            <div class="property-label">Block Hash</div>
+                            <div class="property-value">${formatHash(block.hash)}</div>
+                        </div>
+                        <div class="property-item">
+                            <div class="property-label">Previous Hash</div>
+                            <div class="property-value">${formatHash(block.previousHash)}</div>
+                        </div>
+                        <div class="property-item">
+                            <div class="property-label">Nonce</div>
+                            <div class="property-value">${block.nonce.toLocaleString()}</div>
+                        </div>
+                        <div class="property-item">
+                            <div class="property-label">Merkle Root</div>
+                            <div class="property-value">${formatHash(block.merkleRoot)}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="block-hash">
+                        Hash: ${block.hash}
+                    </div>
+                    
+                    <div class="block-transactions">
+                        <div class="transaction-count">
+                            📝 ${block.transactions.length} Transaction${block.transactions.length !== 1 ? 's' : ''}
+                        </div>
+                        ${block.transactions.map(tx => `
+                            <div class="transaction-item">
+                                <div class="transaction-type">${tx.type}</div>
+                                <div class="transaction-details">${tx.details}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <div class="block-actions">
+                        <button class="btn-action" onclick="event.stopPropagation(); copyBlockHash('${block.hash}')">📋 Copy Hash</button>
+                        <button class="btn-action" onclick="event.stopPropagation(); downloadBlock(${block.id})">💾 Download</button>
+                        <button class="btn-action" onclick="event.stopPropagation(); verifyBlock(${block.id})">✓ Verify</button>
+                        <button class="btn-action" onclick="event.stopPropagation(); shareBlock(${block.id})">🔗 Share</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    function renderBlocks() {
+        const startIndex = (currentPage - 1) * blocksPerPage;
+        const endIndex = Math.min(startIndex + blocksPerPage, totalBlocks);
+        const pageBlocks = mockBlocks.slice(startIndex, endIndex);
+        
+        const timeline = document.getElementById('blockchainTimeline');
+        timeline.innerHTML = pageBlocks.reverse().map(renderBlock).join('');
+        
+        // Animate blocks appearing
+        setTimeout(() => {
+            document.querySelectorAll('.block-card').forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.3s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        }, 100);
+    }
+    
+    function changePage(page) {
+        const maxPages = Math.ceil(totalBlocks / blocksPerPage);
+        
+        if (page === 'prev') {
+            currentPage = Math.max(1, currentPage - 1);
+        } else if (page === 'next') {
+            currentPage = Math.min(maxPages, currentPage + 1);
+        } else if (page === 'first') {
+            currentPage = 1;
+        } else if (page === 'last') {
+            currentPage = maxPages;
+        } else {
+            currentPage = page;
+        }
+        
+        renderBlocks();
+        updatePagination();
+    }
+    
+    function updatePagination() {
+        const maxPages = Math.ceil(totalBlocks / blocksPerPage);
+        const pagination = document.getElementById('pagination');
+        
+        let paginationHTML = `
+            <button class="page-btn ${currentPage === 1 ? 'disabled' : ''}" onclick="changePage('first')">« First</button>
+            <button class="page-btn ${currentPage === 1 ? 'disabled' : ''}" onclick="changePage('prev')">‹ Previous</button>
+        `;
+        
+        for (let i = Math.max(1, currentPage - 2); i <= Math.min(maxPages, currentPage + 2); i++) {
+            paginationHTML += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+        }
+        
+        paginationHTML += `
+            <button class="page-btn ${currentPage === maxPages ? 'disabled' : ''}" onclick="changePage('next')">Next ›</button>
+            <button class="page-btn ${currentPage === maxPages ? 'disabled' : ''}" onclick="changePage('last')">Last »</button>
+        `;
+        
+        pagination.innerHTML = paginationHTML;
+    }
+    
+    function expandBlock(blockId) {
+        // Toggle block expansion or navigate to detailed view
+        console.log(`Expanding block ${blockId}`);
+    }
+    
+    function copyBlockHash(hash) {
+        navigator.clipboard.writeText(hash).then(() => {
+            alert('Block hash copied to clipboard!');
+        }).catch(() => {
+            alert(`Hash: ${hash}`);
+        });
+    }
+    
+    function downloadBlock(blockId) {
+        alert(`Downloading block ${blockId} data...`);
+    }
+    
+    function verifyBlock(blockId) {
+        alert(`Verifying block ${blockId} integrity...`);
+    }
+    
+    function shareBlock(blockId) {
+        const shareUrl = `${window.location.origin}/blocks/${blockId}`;
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            alert('Block link copied to clipboard!');
+        }).catch(() => {
+            alert(`Share this link: ${shareUrl}`);
+        });
+    }
+    
+    function filterBlocks() {
+        const blockNumber = document.getElementById('blockNumber').value;
+        const dateRange = document.getElementById('dateRange').value;
+        const blockType = document.getElementById('blockType').value;
+        
+        // Show loading
+        document.getElementById('loadingSpinner').style.display = 'flex';
+        document.getElementById('blockchainTimeline').style.display = 'none';
+        
+        setTimeout(() => {
+            // Apply filters (mock implementation)
+            console.log('Filtering blocks:', { blockNumber, dateRange, blockType });
+            
+            document.getElementById('loadingSpinner').style.display = 'none';
+            document.getElementById('blockchainTimeline').style.display = 'block';
+            
+            renderBlocks();
+        }, 1000);
+    }
+    
+    // Initialize explorer
+    document.addEventListener('DOMContentLoaded', function() {
+        updateStats();
+        renderBlocks();
+        updatePagination();
+        
+        // Animate stats
+        setTimeout(() => {
+            document.querySelectorAll('.stat-number').forEach(stat => {
+                const target = parseInt(stat.textContent);
+                stat.textContent = '0';
+                animateNumber(stat, target);
+            });
+        }, 500);
+        
+        // Set up filter form
+        document.getElementById('filterForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            filterBlocks();
+        });
+        
+        // Real-time updates
+        setInterval(() => {
+            // Check for new blocks
+            console.log('Checking for new blocks...');
+        }, 30000);
+    });
+    
+    // Auto-refresh blockchain data
+    function refreshBlockchain() {
+        fetch('/api/blockchain/blocks')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update with real data
+                    console.log('Blockchain updated:', data);
+                }
+            })
+            .catch(error => {
+                console.log('Blockchain refresh failed:', error);
+            });
+    }
+    
+    // Refresh every 15 seconds
+    setInterval(refreshBlockchain, 15000);
+</script>
+{% endblock %}

@@ -494,23 +494,34 @@ def search_records():
     try:
         data = request.get_json()
         criteria = data.get('criteria', {})
-        
-        # This is a simplified search - in a full implementation,
-        # you'd want more sophisticated database queries
-        
-        results = []
-        found_count = 0
-        
-        # For now, return a placeholder response
+
+        db_manager = DatabaseManager()
+        results = db_manager.search_student_records(
+            student_id  = criteria.get('student_id'),
+            record_type = criteria.get('record_type'),
+            created_by  = criteria.get('created_by'),
+            date_from   = criteria.get('date_from'),
+            date_to     = criteria.get('date_to'),
+        )
+
+        # Convert datetime objects to ISO strings for JSON serialisation
+        serialisable = []
+        for row in results:
+            row_copy = dict(row)
+            for key, val in row_copy.items():
+                if hasattr(val, 'isoformat'):
+                    row_copy[key] = val.isoformat()
+            serialisable.append(row_copy)
+
         return jsonify({
             'success': True,
             'message': 'Search completed',
-            'results': results,
-            'found_count': found_count,
+            'results': serialisable,
+            'found_count': len(serialisable),
             'search_criteria': criteria,
             'timestamp': datetime.now().isoformat()
         }), 200
-        
+
     except Exception as e:
         logger.error("Search error", extra={"error": str(e)})
         return jsonify({

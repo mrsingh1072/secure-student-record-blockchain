@@ -153,10 +153,10 @@ class User:
                 user.username = user_data['username']
                 user.email = user_data['email']
                 user.role = user_data['role']
-                user.student_id = user_data['student_id']
-                user.created_at = user_data['created_at']
-                user.updated_at = user_data['updated_at']
-                user.is_active = user_data['is_active']
+                user.student_id = user_data.get('student_id')
+                user.created_at = user_data.get('created_at')
+                user.updated_at = user_data.get('updated_at')
+                user.is_active = user_data.get('is_active', True)
                 return user
             
             return None
@@ -185,10 +185,10 @@ class User:
                 user.username = user_data['username']
                 user.email = user_data['email']
                 user.role = user_data['role']
-                user.student_id = user_data['student_id']
-                user.created_at = user_data['created_at']
-                user.updated_at = user_data['updated_at']
-                user.is_active = user_data['is_active']
+                user.student_id = user_data.get('student_id')
+                user.created_at = user_data.get('created_at')
+                user.updated_at = user_data.get('updated_at')
+                user.is_active = user_data.get('is_active', True)
                 return user
             
             return None

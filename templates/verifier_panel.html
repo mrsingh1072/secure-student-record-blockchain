@@ -1,0 +1,712 @@
+{% extends "base.html" %}
+
+{% block title %}Verifier Panel - Secure Student Records{% endblock %}
+{% block page_title %}Verifier Panel{% endblock %}
+{% block user_name %}Verifier{% endblock %}
+
+{% block extra_css %}
+<style>
+    .verification-hero {
+        background: linear-gradient(135deg, var(--success-color), #059669);
+        border-radius: 0.75rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        color: white;
+        text-align: center;
+    }
+    
+    .hero-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .hero-subtitle {
+        opacity: 0.9;
+        font-size: 1rem;
+    }
+    
+    .verification-form {
+        background: var(--secondary-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 0.75rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 1rem;
+        align-items: end;
+    }
+    
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .form-label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+    }
+    
+    .form-input {
+        padding: 0.875rem 1rem;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        color: var(--text-primary);
+        font-size: 1rem;
+        transition: all 0.2s;
+    }
+    
+    .form-input:focus {
+        outline: none;
+        border-color: var(--success-color);
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+    
+    .btn-verify {
+        padding: 0.875rem 2rem;
+        background: var(--success-color);
+        border: none;
+        border-radius: 0.5rem;
+        color: white;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+    
+    .btn-verify:hover {
+        background: #059669;
+        transform: translateY(-1px);
+    }
+    
+    .btn-verify:disabled {
+        background: var(--text-muted);
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    .verification-result {
+        border-radius: 0.75rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        transition: all 0.3s ease;
+    }
+    
+    .result-success {
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    
+    .result-error {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    
+    .result-warning {
+        background: rgba(245, 158, 11, 0.1);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    
+    .result-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .result-icon {
+        width: 3rem;
+        height: 3rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+    
+    .result-icon.success {
+        background: var(--success-color);
+        color: white;
+    }
+    
+    .result-icon.error {
+        background: var(--danger-color);
+        color: white;
+    }
+    
+    .result-icon.warning {
+        background: var(--warning-color);
+        color: white;
+    }
+    
+    .result-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+    
+    .result-subtitle {
+        color: var(--text-muted);
+        font-size: 0.875rem;
+    }
+    
+    .verification-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .detail-section {
+        background: var(--secondary-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+    }
+    
+    .detail-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .detail-item:last-child {
+        border-bottom: none;
+    }
+    
+    .detail-label {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+    }
+    
+    .detail-value {
+        font-weight: 500;
+        color: var(--text-primary);
+        text-align: right;
+        max-width: 60%;
+        word-break: break-word;
+    }
+    
+    .blockchain-info {
+        background: var(--card-bg);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .blockchain-hash {
+        font-family: 'Courier New', monospace;
+        font-size: 0.75rem;
+        color: var(--accent-color);
+        word-break: break-all;
+        background: rgba(59, 130, 246, 0.1);
+        padding: 0.5rem;
+        border-radius: 0.25rem;
+        margin-top: 0.5rem;
+    }
+    
+    .verification-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+    }
+    
+    .btn-action {
+        padding: 0.75rem 1.5rem;
+        border: 1px solid var(--border-color);
+        border-radius: 0.375rem;
+        background: transparent;
+        color: var(--text-primary);
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    
+    .btn-action:hover {
+        background: var(--card-bg);
+        text-decoration: none;
+        color: var(--text-primary);
+    }
+    
+    .btn-primary {
+        background: var(--accent-color);
+        border-color: var(--accent-color);
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: var(--accent-hover);
+        color: white;
+    }
+    
+    .recent-verifications {
+        background: var(--secondary-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 0.75rem;
+        overflow: hidden;
+    }
+    
+    .verification-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        transition: background-color 0.2s;
+    }
+    
+    .verification-item:last-child {
+        border-bottom: none;
+    }
+    
+    .verification-item:hover {
+        background: rgba(59, 130, 246, 0.05);
+    }
+    
+    .verification-status {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        font-size: 0.875rem;
+        font-weight: bold;
+    }
+    
+    .verification-status.success { background: rgba(16, 185, 129, 0.2); color: var(--success-color); }
+    .verification-status.failed { background: rgba(239, 68, 68, 0.2); color: var(--danger-color); }
+    
+    .verification-content {
+        flex: 1;
+    }
+    
+    .verification-title {
+        font-weight: 500;
+        color: var(--text-primary);
+        margin-bottom: 0.25rem;
+    }
+    
+    .verification-meta {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+    }
+    
+    .verification-time {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+    }
+    
+    .quick-verify {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .quick-verify-card {
+        background: var(--secondary-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .quick-verify-card:hover {
+        background: var(--card-bg);
+        transform: translateY(-1px);
+    }
+    
+    .quick-verify-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .quick-verify-title {
+        font-weight: 500;
+        color: var(--text-primary);
+        margin-bottom: 0.25rem;
+    }
+    
+    .quick-verify-desc {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+    }
+    
+    @media (max-width: 768px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+        
+        .verification-details {
+            grid-template-columns: 1fr;
+        }
+        
+        .verification-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="verification-hero">
+    <h1 class="hero-title">Record Verification System</h1>
+    <p class="hero-subtitle">Verify the authenticity of student academic records using blockchain technology</p>
+</div>
+
+<!-- Quick Verification Options -->
+<div class="quick-verify">
+    <div class="quick-verify-card" onclick="setVerificationType('student_id')">
+        <div class="quick-verify-icon">🆔</div>
+        <div class="quick-verify-title">Student ID</div>
+        <div class="quick-verify-desc">Verify by student identification</div>
+    </div>
+    
+    <div class="quick-verify-card" onclick="setVerificationType('record_hash')">
+        <div class="quick-verify-icon">⛓</div>
+        <div class="quick-verify-title">Record Hash</div>
+        <div class="quick-verify-desc">Verify by blockchain hash</div>
+    </div>
+    
+    <div class="quick-verify-card" onclick="setVerificationType('certificate_id')">
+        <div class="quick-verify-icon">🏆</div>
+        <div class="quick-verify-title">Certificate ID</div>
+        <div class="quick-verify-desc">Verify by certificate number</div>
+    </div>
+    
+    <div class="quick-verify-card" onclick="setVerificationType('batch_verify')">
+        <div class="quick-verify-icon">📋</div>
+        <div class="quick-verify-title">Batch Verify</div>
+        <div class="quick-verify-desc">Verify multiple records</div>
+    </div>
+</div>
+
+<!-- Verification Form -->
+<div class="verification-form">
+    <h2 style="margin-bottom: 1.5rem; color: var(--text-primary);">Verify Academic Record</h2>
+    <form id="verificationForm">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="verificationInput" class="form-label" id="inputLabel">Enter Student ID or Record Hash</label>
+                <input 
+                    type="text" 
+                    id="verificationInput" 
+                    name="verificationInput" 
+                    class="form-input" 
+                    placeholder="e.g., STU123456 or 0xabc123..."
+                    required
+                >
+            </div>
+            <button type="submit" class="btn-verify" id="verifyBtn">
+                🔍 Verify Record
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Verification Result -->
+<div id="verificationResult" style="display: none;">
+    <!-- Results will be dynamically inserted here -->
+</div>
+
+<!-- Recent Verifications -->
+<div class="recent-verifications">
+    <div class="card-header">
+        <h3 class="card-title">Recent Verifications</h3>
+    </div>
+    
+    <div class="verification-item">
+        <div class="verification-status success">✓</div>
+        <div class="verification-content">
+            <div class="verification-title">Bachelor's Degree - Computer Science</div>
+            <div class="verification-meta">Student ID: STU123456 • University of Technology</div>
+        </div>
+        <div class="verification-time">2 min ago</div>
+    </div>
+    
+    <div class="verification-item">
+        <div class="verification-status success">✓</div>
+        <div class="verification-content">
+            <div class="verification-title">Web Development Certificate</div>
+            <div class="verification-meta">Certificate ID: CERT789 • Tech Academy</div>
+        </div>
+        <div class="verification-time">15 min ago</div>
+    </div>
+    
+    <div class="verification-item">
+        <div class="verification-status failed">✗</div>
+        <div class="verification-content">
+            <div class="verification-title">Invalid Record Hash</div>
+            <div class="verification-meta">Hash: 0xinvalid... • Not found on blockchain</div>
+        </div>
+        <div class="verification-time">32 min ago</div>
+    </div>
+    
+    <div class="verification-item">
+        <div class="verification-status success">✓</div>
+        <div class="verification-content">
+            <div class="verification-title">Master's Degree - Data Science</div>
+            <div class="verification-meta">Student ID: STU789012 • Tech University</div>
+        </div>
+        <div class="verification-time">1 hour ago</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentVerificationType = 'student_id';
+    
+    function setVerificationType(type) {
+        currentVerificationType = type;
+        const inputLabel = document.getElementById('inputLabel');
+        const verificationInput = document.getElementById('verificationInput');
+        
+        switch(type) {
+            case 'student_id':
+                inputLabel.textContent = 'Enter Student ID';
+                verificationInput.placeholder = 'e.g., STU123456';
+                break;
+            case 'record_hash':
+                inputLabel.textContent = 'Enter Record Hash';
+                verificationInput.placeholder = 'e.g., 0xabc123def456...';
+                break;
+            case 'certificate_id':
+                inputLabel.textContent = 'Enter Certificate ID';
+                verificationInput.placeholder = 'e.g., CERT789012';
+                break;
+            case 'batch_verify':
+                inputLabel.textContent = 'Enter Multiple IDs (comma-separated)';
+                verificationInput.placeholder = 'e.g., STU123, STU456, STU789';
+                break;
+        }
+        
+        // Highlight selected option
+        document.querySelectorAll('.quick-verify-card').forEach(card => {
+            card.style.background = 'var(--secondary-bg)';
+        });
+        event.target.closest('.quick-verify-card').style.background = 'var(--card-bg)';
+    }
+    
+    function showVerificationResult(success, data) {
+        const resultContainer = document.getElementById('verificationResult');
+        
+        if (success) {
+            resultContainer.innerHTML = `
+                <div class="verification-result result-success">
+                    <div class="result-header">
+                        <div class="result-icon success">✓</div>
+                        <div>
+                            <div class="result-title">Record Verified Successfully</div>
+                            <div class="result-subtitle">This record is authentic and stored on the blockchain</div>
+                        </div>
+                    </div>
+                    
+                    <div class="verification-details">
+                        <div class="detail-section">
+                            <div class="detail-title">📋 Student Information</div>
+                            <div class="detail-item">
+                                <span class="detail-label">Student ID</span>
+                                <span class="detail-value">${data.student_id}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Full Name</span>
+                                <span class="detail-value">${data.student_name}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Institution</span>
+                                <span class="detail-value">${data.institution}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-section">
+                            <div class="detail-title">🎓 Academic Record</div>
+                            <div class="detail-item">
+                                <span class="detail-label">Record Type</span>
+                                <span class="detail-value">${data.record_type}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Issue Date</span>
+                                <span class="detail-value">${data.issue_date}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">GPA/Score</span>
+                                <span class="detail-value">${data.gpa}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-section">
+                            <div class="detail-title">⛓ Blockchain Verification</div>
+                            <div class="detail-item">
+                                <span class="detail-label">Block Number</span>
+                                <span class="detail-value">#${data.block_number}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Verification Time</span>
+                                <span class="detail-value">${data.verification_time}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Consensus</span>
+                                <span class="detail-value">PBFT Validated</span>
+                            </div>
+                            
+                            <div class="blockchain-info">
+                                <strong>Blockchain Hash:</strong>
+                                <div class="blockchain-hash">${data.blockchain_hash}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="verification-actions">
+                        <button class="btn-action btn-primary" onclick="downloadVerificationReport()">📥 Download Report</button>
+                        <button class="btn-action" onclick="shareVerification()">🔗 Share Verification</button>
+                        <button class="btn-action" onclick="addToAuditLog()">📝 Add to Audit Log</button>
+                    </div>
+                </div>
+            `;
+        } else {
+            resultContainer.innerHTML = `
+                <div class="verification-result result-error">
+                    <div class="result-header">
+                        <div class="result-icon error">✗</div>
+                        <div>
+                            <div class="result-title">Record Not Found or Invalid</div>
+                            <div class="result-subtitle">${data.message}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="verification-actions">
+                        <button class="btn-action" onclick="reportFraud()">🚨 Report Suspected Fraud</button>
+                        <button class="btn-action" onclick="contactSupport()">📞 Contact Support</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        resultContainer.style.display = 'block';
+        resultContainer.scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    function verifyRecord(input) {
+        const verifyBtn = document.getElementById('verifyBtn');
+        verifyBtn.disabled = true;
+        verifyBtn.textContent = '🔄 Verifying...';
+        
+        // Simulate API call
+        setTimeout(() => {
+            // Mock verification result
+            if (input.toLowerCase().includes('stu123') || input.toLowerCase().includes('0xabc123')) {
+                showVerificationResult(true, {
+                    student_id: 'STU123456',
+                    student_name: 'John Doe',
+                    institution: 'University of Technology',
+                    record_type: 'Bachelor\'s Degree Transcript',
+                    issue_date: 'May 15, 2024',
+                    gpa: '3.85 / 4.0',
+                    block_number: '42',
+                    verification_time: new Date().toLocaleString(),
+                    blockchain_hash: '0xabc123def456789012345678901234567890abcdef'
+                });
+            } else {
+                showVerificationResult(false, {
+                    message: 'The provided identifier was not found in our blockchain records. Please verify the ID and try again.'
+                });
+            }
+            
+            verifyBtn.disabled = false;
+            verifyBtn.textContent = '🔍 Verify Record';
+        }, 2000);
+    }
+    
+    function downloadVerificationReport() {
+        alert('Verification report download started...');
+        // In real implementation: generate and download PDF report
+    }
+    
+    function shareVerification() {
+        const shareUrl = `${window.location.origin}/verify/shared/${Date.now()}`;
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            alert('Verification link copied to clipboard!');
+        }).catch(() => {
+            alert(`Share this link: ${shareUrl}`);
+        });
+    }
+    
+    function addToAuditLog() {
+        alert('Verification added to audit log.');
+    }
+    
+    function reportFraud() {
+        alert('Fraud report submitted to security team.');
+    }
+    
+    function contactSupport() {
+        alert('Redirecting to support portal...');
+    }
+    
+    // Initialize form
+    document.addEventListener('DOMContentLoaded', function() {
+        const verificationForm = document.getElementById('verificationForm');
+        
+        verificationForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const input = document.getElementById('verificationInput').value.trim();
+            
+            if (!input) {
+                alert('Please enter a valid ID or hash to verify.');
+                return;
+            }
+            
+            verifyRecord(input);
+        });
+        
+        // Set default verification type
+        setVerificationType('student_id');
+        
+        // Focus on input
+        document.getElementById('verificationInput').focus();
+    });
+    
+    // Auto-complete functionality for known IDs
+    const knownIds = ['STU123456', 'STU789012', 'CERT789', '0xabc123def456'];
+    
+    document.getElementById('verificationInput').addEventListener('input', function(e) {
+        const input = e.target.value.toLowerCase();
+        
+        // Simple autocomplete hint
+        knownIds.forEach(id => {
+            if (id.toLowerCase().startsWith(input) && input.length > 2) {
+                // Could implement dropdown suggestions here
+                console.log('Suggestion:', id);
+            }
+        });
+    });
+</script>
+{% endblock %}

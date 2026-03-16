@@ -22,9 +22,13 @@ class Config:
     SESSION_COOKIE_SAMESITE = 'Lax'
     PERMANENT_SESSION_LIFETIME = timedelta(hours=8)
     
-    # Database Configuration
-    DATABASE_PATH = os.environ.get('DATABASE_PATH') or 'secure_student_records.db'
-    DATABASE_BACKUP_ENABLED = True
+    # Database Configuration  (MySQL via PyMySQL)
+    DB_HOST     = os.environ.get('DB_HOST', 'localhost')
+    DB_PORT     = int(os.environ.get('DB_PORT', 3306))
+    DB_USER     = os.environ.get('DB_USER', 'root')
+    DB_PASSWORD = os.environ.get('DB_PASSWORD', '')   # set DB_PASSWORD env var in production
+    DB_NAME     = os.environ.get('DB_NAME', 'ssrbc')
+    DATABASE_BACKUP_ENABLED  = True
     DATABASE_BACKUP_INTERVAL = 3600  # seconds (1 hour)
     
     # Blockchain Configuration

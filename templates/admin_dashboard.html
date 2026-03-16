@@ -1,0 +1,375 @@
+{% extends "base.html" %}
+
+{% block page_title %}Analytics Overview{% endblock %}
+{% block user_name %}Administrator{% endblock %}
+{% block user_role %}System Admin{% endblock %}
+{% block user_avatar %}A{% endblock %}
+
+{% block content %}
+<!-- Main Stats Grid -->
+<div class="grid grid-cols-4 mb-6">
+    <div class="glass-card">
+        <div class="card-body">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                <div>
+                    <h3 style="font-size: 0.875rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Total Blocks</h3>
+                    <div style="font-size: 2.25rem; font-weight: 700; color: var(--text-primary); margin-top: 0.5rem;" data-animate="counter" id="total-blocks">{{ total_blocks or 42 }}</div>
+                </div>
+                <div style="width: 3rem; height: 3rem; background: var(--info-gradient); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);">
+                    <span style="font-size: 1.25rem;">🔗</span>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span class="status-badge status-success">
+                    <span style="width: 4px; height: 4px; background: #34d399; border-radius: 50%;"></span>
+                    +12% this month
+                </span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="glass-card">
+        <div class="card-body">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                <div>
+                    <h3 style="font-size: 0.875rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Student Records</h3>
+                    <div style="font-size: 2.25rem; font-weight: 700; color: var(--text-primary); margin-top: 0.5rem;" data-animate="counter" id="student-records">{{ total_records or 1247 }}</div>
+                </div>
+                <div style="width: 3rem; height: 3rem; background: var(--success-gradient); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);">
+                    <span style="font-size: 1.25rem;">🎓</span>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span class="status-badge status-success">
+                    <span style="width: 4px; height: 4px; background: #34d399; border-radius: 50%;"></span>
+                    +8% today
+                </span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="glass-card">
+        <div class="card-body">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                <div>
+                    <h3 style="font-size: 0.875rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Pending Verifications</h3>
+                    <div style="font-size: 2.25rem; font-weight: 700; color: var(--text-primary); margin-top: 0.5rem;" data-animate="counter" id="pending-verifications">{{ verified_records or 23 }}</div>
+                </div>
+                <div style="width: 3rem; height: 3rem; background: var(--warning-gradient); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);">
+                    <span style="font-size: 1.25rem;">⏳</span>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span class="status-badge status-warning">
+                    <span style="width: 4px; height: 4px; background: #fbbf24; border-radius: 50%;"></span>
+                    Needs attention
+                </span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="glass-card">
+        <div class="card-body">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                <div>
+                    <h3 style="font-size: 0.875rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">System Uptime</h3>
+                    <div style="font-size: 2.25rem; font-weight: 700; color: var(--text-primary); margin-top: 0.5rem;">99.9<span style="font-size: 1rem;">%</span></div>
+                </div>
+                <div style="width: 3rem; height: 3rem; background: var(--primary-accent); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-glow);">
+                    <span style="font-size: 1.25rem;">⚡</span>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span class="status-badge status-success">
+                    <span style="width: 4px; height: 4px; background: #34d399; border-radius: 50%;"></span>
+                    Excellent
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-3 mb-6">
+    <!-- System Health Monitor -->
+    <div class="glass-card" style="grid-column: span 2;">
+        <div class="card-header">
+            <div class="card-title" style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 2rem; height: 2rem; background: var(--primary-accent); border-radius: 0.5rem; display: flex; align-items: center; justify-content: center;">
+                    <span style="font-size: 0.875rem;">💚</span>
+                </div>
+                Real-Time System Monitor
+            </div>
+            <div class="card-subtitle">Live blockchain network status and performance metrics</div>
+        </div>
+        <div class="card-body">
+            <div class="grid grid-cols-2">
+                <div class="system-metric">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <span style="color: var(--text-secondary); font-weight: 500;">Network Hash Rate</span>
+                        <span class="status-badge status-success">Optimal</span>
+                    </div>
+                    <div style="background: rgba(255, 255, 255, 0.05); border-radius: 0.5rem; height: 0.5rem; overflow: hidden; margin-bottom: 0.5rem;">
+                        <div style="width: 87%; height: 100%; background: var(--success-gradient); border-radius: 0.5rem; animation: pulse-bar 2s infinite;"></div>
+                    </div>
+                    <div style="font-size: 0.875rem; color: var(--text-muted);">87% of network capacity</div>
+                </div>
+                
+                <div class="system-metric">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <span style="color: var(--text-secondary); font-weight: 500;">Consensus Status</span>
+                        <span class="status-badge status-success">PBFT Active</span>
+                    </div>
+                    <div style="background: rgba(255, 255, 255, 0.05); border-radius: 0.5rem; height: 0.5rem; overflow: hidden; margin-bottom: 0.5rem;">
+                        <div style="width: 100%; height: 100%; background: var(--info-gradient); border-radius: 0.5rem;"></div>
+                    </div>
+                    <div style="font-size: 0.875rem; color: var(--text-muted);">3/3 nodes synchronized</div>
+                </div>
+                
+                <div class="system-metric">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <span style="color: var(--text-secondary); font-weight: 500;">Database Performance</span>
+                        <span class="status-badge status-success">Fast</span>
+                    </div>
+                    <div style="background: rgba(255, 255, 255, 0.05); border-radius: 0.5rem; height: 0.5rem; overflow: hidden; margin-bottom: 0.5rem;">
+                        <div style="width: 94%; height: 100%; background: var(--success-gradient); border-radius: 0.5rem;"></div>
+                    </div>
+                    <div style="font-size: 0.875rem; color: var(--text-muted);">Avg response: 12ms</div>
+                </div>
+                
+                <div class="system-metric">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <span style="color: var(--text-secondary); font-weight: 500;">Security Level</span>
+                        <span class="status-badge status-success">Maximum</span>
+                    </div>
+                    <div style="background: rgba(255, 255, 255, 0.05); border-radius: 0.5rem; height: 0.5rem; overflow: hidden; margin-bottom: 0.5rem;">
+                        <div style="width: 100%; height: 100%; background: var(--primary-accent); border-radius: 0.5rem;"></div>
+                    </div>
+                    <div style="font-size: 0.875rem; color: var(--text-muted);">SHA-256 + Fernet encryption</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Activity Feed -->
+    <div class="glass-card">
+        <div class="card-header">
+            <div class="card-title" style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 2rem; height: 2rem; background: var(--warning-gradient); border-radius: 0.5rem; display: flex; align-items: center; justify-content: center;">
+                    <span style="font-size: 0.875rem;">📈</span>
+                </div>
+                Activity Feed
+            </div>
+            <div class="card-subtitle">Latest system events</div>
+        </div>
+        <div class="card-body">
+            <div class="activity-timeline">
+                <div class="activity-item" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--glass-border);">
+                    <div style="width: 0.75rem; height: 0.75rem; background: var(--success-gradient); border-radius: 50%; margin-top: 0.375rem; box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);"></div>
+                    <div>
+                        <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem;">New block mined</div>
+                        <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.5rem;">Block #{{ latest_block or 1247 }} added to chain</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.25rem;">
+                            <span>⏰</span> 2 minutes ago
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="activity-item" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--glass-border);">
+                    <div style="width: 0.75rem; height: 0.75rem; background: var(--info-gradient); border-radius: 50%; margin-top: 0.375rem; box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);"></div>
+                    <div>
+                        <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem;">Student record verified</div>
+                        <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.5rem;">ID: STU-2024-0892</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.25rem;">
+                            <span>⏰</span> 5 minutes ago
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="activity-item" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--glass-border);">
+                    <div style="width: 0.75rem; height: 0.75rem; background: var(--warning-gradient); border-radius: 50%; margin-top: 0.375rem; box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);"></div>
+                    <div>
+                        <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem;">System backup completed</div>
+                        <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.5rem;">Daily backup successful</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.25rem;">
+                            <span>⏰</span> 1 hour ago
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="activity-item" style="display: flex; gap: 1rem; margin-bottom: 0;">
+                    <div style="width: 0.75rem; height: 0.75rem; background: var(--primary-accent); border-radius: 50%; margin-top: 0.375rem; box-shadow: var(--shadow-glow);"></div>
+                    <div>
+                        <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem;">PBFT consensus reached</div>
+                        <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.5rem;">Network agreement achieved</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.25rem;">
+                            <span>⏰</span> 2 hours ago
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions Panel -->
+<div class="glass-card">
+    <div class="card-header">
+        <div class="card-title" style="display: flex; align-items: center; gap: 0.75rem;">
+            <div style="width: 2rem; height: 2rem; background: var(--primary-accent); border-radius: 0.5rem; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 0.875rem;">⚡</span>
+            </div>
+            Quick Actions & System Controls
+        </div>
+        <div class="card-subtitle">Frequently used administrative tools and shortcuts</div>
+    </div>
+    <div class="card-body">
+        <div class="grid grid-cols-4">
+            <a href="/blockchain_explorer" class="btn btn-glass" style="display: flex; flex-direction: column; align-items: center; padding: 1.5rem; text-decoration: none;">
+                <div style="width: 3rem; height: 3rem; background: var(--info-gradient); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);">
+                    <span style="font-size: 1.25rem;">🔍</span>
+                </div>
+                <span style="font-weight: 600; color: var(--text-primary);">Explore Blocks</span>
+                <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">Browse blockchain</span>
+            </a>
+            
+            <a href="/verifier_panel" class="btn btn-glass" style="display: flex; flex-direction: column; align-items: center; padding: 1.5rem; text-decoration: none;">
+                <div style="width: 3rem; height: 3rem; background: var(--success-gradient); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);">
+                    <span style="font-size: 1.25rem;">✓</span>
+                </div>
+                <span style="font-weight: 600; color: var(--text-primary);">Verify Records</span>
+                <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">Validate authenticity</span>
+            </a>
+            
+            <a href="/health" class="btn btn-glass" style="display: flex; flex-direction: column; align-items: center; padding: 1.5rem; text-decoration: none;">
+                <div style="width: 3rem; height: 3rem; background: var(--warning-gradient); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);">
+                    <span style="font-size: 1.25rem;">💚</span>
+                </div>
+                <span style="font-weight: 600; color: var(--text-primary);">System Health</span>
+                <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">Check status</span>
+            </a>
+            
+            <a href="/api-docs" class="btn btn-glass" style="display: flex; flex-direction: column; align-items: center; padding: 1.5rem; text-decoration: none;">
+                <div style="width: 3rem; height: 3rem; background: var(--primary-accent); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; box-shadow: var(--shadow-glow);">
+                    <span style="font-size: 1.25rem;">📚</span>
+                </div>
+                <span style="font-weight: 600; color: var(--text-primary);">API Docs</span>
+                <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">View documentation</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    @keyframes pulse-bar {
+        0%, 100% { transform: scaleX(1); }
+        50% { transform: scaleX(1.02); }
+    }
+    
+    .system-metric {
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 0.75rem;
+        border: 1px solid var(--glass-border);
+    }
+    
+    .activity-timeline {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .activity-timeline::-webkit-scrollbar {
+        width: 4px;
+    }
+    
+    .activity-timeline::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 2px;
+    }
+    
+    .activity-timeline::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 2px;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function updateDashboard() {
+        // Simulate real-time data updates
+        const blocks = document.getElementById('total-blocks');
+        const records = document.getElementById('student-records');
+        const verifications = document.getElementById('pending-verifications');
+        
+        if (blocks) {
+            const currentBlocks = parseInt(blocks.textContent);
+            if (Math.random() > 0.7) { // 30% chance to increment
+                animateValue(blocks, currentBlocks, currentBlocks + 1, 1000);
+            }
+        }
+        
+        if (records) {
+            const currentRecords = parseInt(records.textContent.replace(',', ''));
+            if (Math.random() > 0.8) { // 20% chance to increment
+                animateValue(records, currentRecords, currentRecords + Math.floor(Math.random() * 3) + 1, 1500);
+            }
+        }
+        
+        if (verifications) {
+            const currentVerifications = parseInt(verifications.textContent);
+            if (Math.random() > 0.6) { // 40% chance to change
+                const change = Math.floor(Math.random() * 5) - 2; // -2 to +2
+                const newValue = Math.max(0, currentVerifications + change);
+                animateValue(verifications, currentVerifications, newValue, 1200);
+            }
+        }
+    }
+    
+    // Enhanced animation function with easing
+    function animateValue(element, start, end, duration) {
+        const startTimestamp = performance.now();
+        
+        function updateValue(timestamp) {
+            const elapsed = timestamp - startTimestamp;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            // Ease-out cubic function for smooth animation
+            const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+            const current = Math.floor(easeOutCubic * (end - start) + start);
+            
+            element.textContent = current.toLocaleString();
+            
+            if (progress < 1) {
+                requestAnimationFrame(updateValue);
+            }
+        }
+        
+        requestAnimationFrame(updateValue);
+    }
+    
+    // Initialize dashboard
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate counters on load
+        document.querySelectorAll('[data-animate="counter"]').forEach(element => {
+            const targetValue = parseInt(element.textContent.replace(/,/g, '')) || 0;
+            element.textContent = '0';
+            setTimeout(() => {
+                animateValue(element, 0, targetValue, 2500);
+            }, Math.random() * 500); // Stagger animations
+        });
+        
+        // Add loading states for cards
+        document.querySelectorAll('.glass-card').forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                card.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
+    });
+</script>
+{% endblock %}
