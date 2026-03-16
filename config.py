@@ -100,6 +100,13 @@ class Config:
     # Cache Configuration (for future caching implementation)
     CACHE_TYPE = 'simple'
     CACHE_DEFAULT_TIMEOUT = 300  # 5 minutes
+
+    # OAuth / Google Sign-In
+    GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
+    GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
+    # Optional comma-separated list of allowed college email domains
+    # e.g. "college.edu,srmap.edu.in"
+    COLLEGE_EMAIL_DOMAINS = os.environ.get("COLLEGE_EMAIL_DOMAINS")
     
     @staticmethod
     def init_app(app):

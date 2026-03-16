@@ -82,6 +82,8 @@ class DatabaseManager:
         row.setdefault("student_id", None)
         row.setdefault("updated_at", row.get("created_at"))
         row.setdefault("is_active", 1)
+        row.setdefault("google_auth_enabled", row.get("google_auth_enabled", 0))
+        row.setdefault("google_id", row.get("google_id"))
         return row
 
     def _normalize_record_row(self, row: dict) -> dict:
@@ -98,7 +100,10 @@ class DatabaseManager:
         return [self._normalize_record_row(dict(row)) for row in rows]
 
     def create_user(self, username: str, email: str, password_hash: str,
-                    role: str, student_id: str = None) -> int:
+                    role: str, student_id: str = None,
+                    aadhaar_hash: str = None,
+                    google_auth_enabled: bool = False,
+                    google_id: str = None) -> int:
         """Insert a new user and return the generated primary key."""
         columns = ["username", "email", "password_hash", "role"]
         values = [username, email, password_hash, role]
@@ -106,6 +111,22 @@ class DatabaseManager:
         if self._table_has_column("users", "student_id"):
             columns.append("student_id")
             values.append(student_id)
+
+        if self._table_has_column("users", "aadhaar_hash"):
+            columns.append("aadhaar_hash")
+            values.append(aadhaar_hash)
+
+        if self._table_has_column("users", "google_auth_enabled"):
+            columns.append("google_auth_enabled")
+            values.append(1 if google_auth_enabled else 0)
+
+        if self._table_has_column("users", "google_id"):
+            columns.append("google_id")
+            values.append(google_id)
+
+        if self._table_has_column("users", "created_at"):
+            columns.append("created_at")
+            values.append(datetime.now(timezone.utc))
 
         placeholders = ", ".join(["%s"] * len(columns))
         sql = f"""
@@ -121,6 +142,26 @@ class DatabaseManager:
         """Return one user row as a dictionary, or None if not found."""
         filters = ["username = %s"]
         params = [username]
+
+        if self._table_has_column("users", "is_active"):
+            filters.append("is_active = 1")
+
+        sql = f"""
+            SELECT *
+            FROM users
+            WHERE {' AND '.join(filters)}
+            LIMIT 1
+        """
+
+        with self._cursor() as cursor:
+            cursor.execute(sql, tuple(params))
+            row = cursor.fetchone()
+            return self._normalize_user_row(row)
+
+    def get_user_by_email(self, email: str) -> dict:
+        """Return one user row matched by email, or None if not found."""
+        filters = ["email = %s"]
+        params = [email]
 
         if self._table_has_column("users", "is_active"):
             filters.append("is_active = 1")

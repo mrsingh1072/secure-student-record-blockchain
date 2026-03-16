@@ -2,13 +2,16 @@
 User model for authentication and authorization
 """
 
-import hashlib
 from datetime import datetime
+
+import bcrypt
+
 from database.db import DatabaseManager
 from utils.permissions import PolicyEngine, PermissionDeniedError
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
+
 
 class User:
     """
@@ -42,31 +45,41 @@ class User:
         )
     
     @staticmethod
-    def hash_password(password):
+    def hash_password(password: str) -> str:
         """
-        Hash password using SHA256
-        
+        Hash password using bcrypt.
+
         Args:
             password (str): Plain text password
-            
+
         Returns:
-            str: Hashed password
+            str: Bcrypt hashed password
         """
-        return hashlib.sha256(password.encode()).hexdigest()
-    
+        if not isinstance(password, str):
+            raise ValueError("Password must be a string")
+        salt = bcrypt.gensalt()
+        return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
+
     @staticmethod
-    def verify_password(password, password_hash):
+    def verify_password(password: str, password_hash: str) -> bool:
         """
-        Verify password against hash
-        
+        Verify password against bcrypt hash.
+
         Args:
             password (str): Plain text password
             password_hash (str): Stored password hash
-            
+
         Returns:
             bool: True if password matches, False otherwise
         """
-        return User.hash_password(password) == password_hash
+        try:
+            return bcrypt.checkpw(
+                password.encode("utf-8"),
+                password_hash.encode("utf-8"),
+            )
+        except Exception:
+            # If stored hash is invalid or in legacy format, fail closed
+            return False
     
     def validate_data(self):
         """
@@ -89,9 +102,10 @@ class User:
         if self.role not in self.VALID_ROLES:
             errors.append(f"Role must be one of: {', '.join(self.VALID_ROLES)}")
         
-        # Validate student_id for student role
-        if self.role == 'student' and not self.student_id:
-            errors.append("Student ID is required for student role")
+        # Validate student_id for student role (optional for self-registration).
+        # Many institutions may assign student IDs later; enforce only if provided.
+        # if self.role == 'student' and not self.student_id:
+        #     errors.append("Student ID is required for student role")
         
         return len(errors) == 0, errors
     
@@ -120,11 +134,11 @@ class User:
                 # Create new user
                 password_hash = self.hash_password(password)
                 self.user_id = self.db_manager.create_user(
-                    self.username,
-                    self.email,
-                    password_hash,
-                    self.role,
-                    self.student_id
+                    username=self.username,
+                    email=self.email,
+                    password_hash=password_hash,
+                    role=self.role,
+                    student_id=self.student_id,
                 )
                 return True
         except Exception as e:
@@ -132,36 +146,41 @@ class User:
             return False
     
     @classmethod
-    def authenticate(cls, username, password):
+    def authenticate(cls, identifier: str, password: str):
         """
-        Authenticate user with username and password
-        
+        Authenticate user with username OR email and password.
+
         Args:
-            username (str): Username
+            identifier (str): Username or email
             password (str): Plain text password
-            
+
         Returns:
             User or None: User object if authentication successful, None otherwise
         """
         try:
             db_manager = DatabaseManager()
-            user_data = db_manager.get_user_by_username(username)
-            
-            if user_data and cls.verify_password(password, user_data['password_hash']):
+
+            # Decide whether identifier is email or username
+            if "@" in identifier:
+                user_data = db_manager.get_user_by_email(identifier)
+            else:
+                user_data = db_manager.get_user_by_username(identifier)
+
+            if user_data and cls.verify_password(password, user_data["password_hash"]):
                 user = cls()
-                user.user_id = user_data['id']
-                user.username = user_data['username']
-                user.email = user_data['email']
-                user.role = user_data['role']
-                user.student_id = user_data.get('student_id')
-                user.created_at = user_data.get('created_at')
-                user.updated_at = user_data.get('updated_at')
-                user.is_active = user_data.get('is_active', True)
+                user.user_id = user_data["id"]
+                user.username = user_data["username"]
+                user.email = user_data["email"]
+                user.role = user_data["role"]
+                user.student_id = user_data.get("student_id")
+                user.created_at = user_data.get("created_at")
+                user.updated_at = user_data.get("updated_at")
+                user.is_active = user_data.get("is_active", True)
                 return user
-            
+
             return None
         except Exception as e:
-            print(f"Authentication error: {e}")
+            logger.error("Authentication error", extra={"error": str(e)})
             return None
     
     @classmethod

@@ -261,13 +261,13 @@
         
         <form id="loginForm">
             <div class="form-group">
-                <label for="username" class="form-label">Username</label>
+                <label for="identifier" class="form-label">Username or College Email</label>
                 <input 
                     type="text" 
-                    id="username" 
-                    name="username" 
+                    id="identifier" 
+                    name="identifier" 
                     class="form-input" 
-                    placeholder="Enter your username"
+                    placeholder="Enter username or college email"
                     required
                     autocomplete="username"
                 >
@@ -293,24 +293,20 @@
         </form>
         
         <div class="forgot-password">
-            <a href="#" onclick="showForgotPassword()">Forgot your password?</a>
+            <a href="/register">New student? Create your account</a>
         </div>
-        
-        <div class="demo-credentials">
-            <div class="demo-title">Demo Credentials:</div>
-            <div class="demo-item">
-                <span>Admin:</span>
-                <span>admin / admin123</span>
-            </div>
-            <div class="demo-item">
-                <span>Student:</span>
-                <span>student / pass123</span>
-            </div>
-            <div class="demo-item">
-                <span>Verifier:</span>
-                <span>verifier / verify123</span>
-            </div>
+
+        {% if google_enabled %}
+        <div style="margin-top: 1.5rem; text-align: center; color: var(--text-muted); font-size: 0.8rem;">
+            <span>OR</span>
         </div>
+        <div style="margin-top: 0.75rem;">
+            <a href="/auth/google" class="btn" style="background: #ffffff; color: #1f2933; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                <img src="https://developers.google.com/identity/images/g-logo.png" width="18" height="18" alt="Google logo">
+                <span class="btn-text">Sign in with Google</span>
+            </a>
+        </div>
+        {% endif %}
         
         <div class="security-note">
             🔒 All communications are encrypted end-to-end. 
@@ -357,12 +353,12 @@
             
             const formData = new FormData(loginForm);
             const credentials = {
-                username: formData.get('username'),
+                identifier: formData.get('identifier'),
                 password: formData.get('password')
             };
             
-            if (!credentials.username || !credentials.password) {
-                showAlert('Please enter both username and password');
+            if (!credentials.identifier || !credentials.password) {
+                showAlert('Please enter your username/email and password');
                 return;
             }
             
@@ -410,30 +406,26 @@
             }
         });
         
-        function showForgotPassword() {
-            showAlert('Please contact your system administrator to reset your password.', 'success');
-        }
-        
         // Auto-fill demo credentials on click
         document.addEventListener('click', function(e) {
             const demoItem = e.target.closest('.demo-item');
             if (demoItem) {
                 const text = demoItem.textContent;
                 if (text.includes('admin / admin123')) {
-                    document.getElementById('username').value = 'admin';
+                    document.getElementById('identifier').value = 'admin';
                     document.getElementById('password').value = 'admin123';
                 } else if (text.includes('student / pass123')) {
-                    document.getElementById('username').value = 'student';
+                    document.getElementById('identifier').value = 'student';
                     document.getElementById('password').value = 'pass123';
                 } else if (text.includes('verifier / verify123')) {
-                    document.getElementById('username').value = 'verifier';
+                    document.getElementById('identifier').value = 'verifier';
                     document.getElementById('password').value = 'verify123';
                 }
             }
         });
         
         // Focus management
-        document.getElementById('username').focus();
+        document.getElementById('identifier').focus();
         
         // Enter key handling
         document.addEventListener('keydown', function(e) {

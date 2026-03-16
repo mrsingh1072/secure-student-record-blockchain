@@ -34,6 +34,7 @@ from utils.hashing import HashingUtils
 from utils.masking import DataMasking
 from utils.singletons import get_blockchain, get_pbft_consensus, validate_blockchain, get_system_stats
 from utils.exceptions import BlockchainIntegrityError, EncryptionError
+from oauth_client import init_oauth
 
 logger = get_logger(__name__)
 
@@ -53,6 +54,9 @@ def create_app(config_class=Config):
     # Initialize CORS for cross-origin requests
     CORS(app, supports_credentials=True)
     
+    # Initialize OAuth providers (Google)
+    init_oauth(app)
+
     # Register blueprints
     app.register_blueprint(auth_bp)
     app.register_blueprint(record_bp)
@@ -649,7 +653,39 @@ def login_page():
     """
     Render login page
     """
-    return render_template('login.html')
+    # Determine if Google OAuth is configured (used to toggle button visibility)
+    google_enabled = bool(
+        os.environ.get("GOOGLE_CLIENT_ID") and os.environ.get("GOOGLE_CLIENT_SECRET")
+    )
+    return render_template('login.html', google_enabled=google_enabled)
+
+
+@app.route('/register', methods=['GET'])
+def register_page():
+    """
+    Render student registration page
+    """
+    google_enabled = bool(
+        os.environ.get("GOOGLE_CLIENT_ID") and os.environ.get("GOOGLE_CLIENT_SECRET")
+    )
+    # Pass allowed domains for basic UX hint
+    from config import Config as AppConfig
+
+    domains = getattr(AppConfig, "COLLEGE_EMAIL_DOMAINS", None) or getattr(
+        AppConfig, "COLLEGE_EMAIL_DOMAIN", None
+    )
+    if isinstance(domains, (list, tuple, set)):
+        allowed_domains = ", ".join(sorted(domains))
+    elif domains:
+        allowed_domains = str(domains)
+    else:
+        allowed_domains = "college.edu"
+
+    return render_template(
+        'register.html',
+        google_enabled=google_enabled,
+        allowed_domains=allowed_domains,
+    )
 
 @app.route('/admin_dashboard', methods=['GET'])
 def admin_dashboard():

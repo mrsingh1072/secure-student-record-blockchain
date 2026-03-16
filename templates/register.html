@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Registration - Secure Student Records</title>
+    <link rel="stylesheet" href="/static/css/login.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <div class="logo">🎓</div>
+            <h1 class="login-title">Student Registration</h1>
+            <p class="login-subtitle">
+                Use your official college email{% if allowed_domains %} ({{ allowed_domains }}){% endif %}.
+            </p>
+        </div>
+
+        <div id="alerts"></div>
+
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="email" class="form-label">College Email</label>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    class="form-input"
+                    placeholder="you@college.edu"
+                    required
+                    autocomplete="email"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="username" class="form-label">Username</label>
+                <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    class="form-input"
+                    placeholder="Choose a unique username"
+                    required
+                    autocomplete="username"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    class="form-input"
+                    placeholder="Create a strong password"
+                    required
+                    autocomplete="new-password"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="aadhaar" class="form-label">Aadhaar (optional)</label>
+                <input
+                    type="text"
+                    id="aadhaar"
+                    name="aadhaar"
+                    class="form-input"
+                    placeholder="Your Aadhaar number (digits only)"
+                    autocomplete="off"
+                >
+            </div>
+
+            <button type="submit" class="btn" id="registerBtn">
+                <span class="btn-text">Create Account</span>
+                <div class="loading" style="display: none;"></div>
+            </button>
+        </form>
+
+        <div class="forgot-password">
+            <a href="/login">Already have an account? Sign in</a>
+        </div>
+
+        {% if google_enabled %}
+        <div style="margin-top: 1.5rem;">
+            <button type="button" class="btn" style="background: #ea4335;" onclick="registerWithGoogle()">
+                <span class="btn-text">Continue with Google</span>
+            </button>
+        </div>
+        {% endif %}
+
+        <div class="security-note">
+            Your password and Aadhaar are stored only as secure hashes and never in plain text.
+        </div>
+    </div>
+
+    <script>
+        const registerForm = document.getElementById('registerForm');
+        const registerBtn = document.getElementById('registerBtn');
+        const alertsContainer = document.getElementById('alerts');
+
+        function showAlert(message, type = 'error') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+
+            alertsContainer.innerHTML = '';
+            alertsContainer.appendChild(alertDiv);
+
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        function setLoading(loading) {
+            const btnText = registerBtn.querySelector('.btn-text');
+            const loadingSpinner = registerBtn.querySelector('.loading');
+
+            if (loading) {
+                registerBtn.classList.add('btn-loading');
+                registerBtn.disabled = true;
+                loadingSpinner.style.display = 'block';
+            } else {
+                registerBtn.classList.remove('btn-loading');
+                registerBtn.disabled = false;
+                loadingSpinner.style.display = 'none';
+            }
+        }
+
+        registerForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(registerForm);
+            const payload = {
+                email: formData.get('email'),
+                username: formData.get('username'),
+                password: formData.get('password'),
+                aadhaar: formData.get('aadhaar') || undefined
+            };
+
+            if (!payload.email || !payload.username || !payload.password) {
+                showAlert('Email, username and password are required');
+                return;
+            }
+
+            setLoading(true);
+            try {
+                const response = await fetch('/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showAlert('Registration successful! Redirecting to login...', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/login';
+                    }, 1200);
+                } else {
+                    showAlert(data.message || 'Registration failed');
+                }
+            } catch (err) {
+                console.error('Registration error:', err);
+                showAlert('Connection error. Please try again.');
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        function registerWithGoogle() {
+            window.location.href = '/auth/google/login';
+        }
+
+        document.getElementById('email').focus();
+    </script>
+</body>
+</html>
+
